@@ -116,9 +116,9 @@ export default function Home() {
   ];
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#0B0908] text-[#F2EFEA] overflow-x-hidden w-full max-w-[100vw]">
+    <main className="flex min-h-screen flex-col bg-[#0B0908] text-[#F2EFEA]">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 px-8 py-6 md:px-12 flex justify-between items-center bg-black/20 backdrop-blur-xl border-b border-white/5">
+      <nav className="fixed top-0 left-0 right-0 z-50 p-6 flex justify-between items-center bg-black/20 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center gap-2 text-[#D4AF37] font-bold text-xl tracking-widest uppercase">
           <Coffee className="w-6 h-6" />
           Aether Café
@@ -131,7 +131,7 @@ export default function Home() {
           <a href="#contact" className="hover:text-[#D4AF37] transition-colors">Contact</a>
         </div>
         <button 
-          className="md:hidden text-white hover:text-[#D4AF37] transition-colors"
+          className="md:hidden text-white hover:text-[#D4AF37] transition-colors mr-2 sm:mr-4"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
