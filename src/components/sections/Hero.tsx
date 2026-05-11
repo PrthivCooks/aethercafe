@@ -21,10 +21,25 @@ export default function Hero() {
   const [loaded, setLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
 
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
+
   const framesRef = useRef<HTMLImageElement[]>([]);
   const tickingRef = useRef(false);
 
   useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile === null) return;
+    if (isMobile) {
+      setLoaded(true);
+      return;
+    }
+
     let loadedCount = 0;
     const images: HTMLImageElement[] = [];
 
@@ -50,7 +65,7 @@ export default function Hero() {
       };
       images.push(img);
     }
-  }, []);
+  }, [isMobile]);
 
   const drawFrame = (frameIndex: number) => {
     if (!canvasRef.current || !framesRef.current[frameIndex]) return;
@@ -93,6 +108,7 @@ export default function Hero() {
   };
 
   useEffect(() => {
+    if (isMobile === null || isMobile) return;
     if (!loaded) return;
 
     // Ensure the first frame is drawn immediately
@@ -128,7 +144,75 @@ export default function Hero() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", () => drawFrame(0));
     };
-  }, [loaded]);
+  }, [loaded, isMobile]);
+
+  if (isMobile === null) return <div className="h-screen w-full bg-[#0B0908]" />;
+
+  if (isMobile) {
+    return (
+      <section className="relative w-full h-[100svh] bg-[#0B0908] overflow-hidden flex flex-col items-center justify-center">
+        {/* Auto-playing video loop for mobile */}
+        <video 
+          src="/assets/hero.mp4" 
+          autoPlay 
+          muted 
+          loop 
+          playsInline 
+          className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0B0908]/90 via-transparent to-[#0B0908] pointer-events-none" />
+
+        {/* Mobile Animated Text */}
+        <div className="relative z-10 flex flex-col items-center text-center p-6 w-full max-w-sm mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="mb-8 relative"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-10 -left-10 opacity-40 text-[#D4AF37]"
+            >
+              <Sparkles className="w-20 h-20 blur-[2px]" />
+            </motion.div>
+            <span className="text-[#D4AF37] font-semibold tracking-[0.3em] text-xs mb-4 uppercase block drop-shadow-md">Aether Café</span>
+            <h1 className="text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-2xl leading-tight">
+              Coffee Beyond <br/> Gravity.
+            </h1>
+            <p className="text-white/80 text-lg font-light leading-relaxed">
+              Crafted slowly. Experienced deeply. A true cinematic journey in a cup.
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 1 }}
+            className="flex flex-col items-center text-[#D4AF37] gap-2 mt-8"
+          >
+            <span className="text-[10px] tracking-[0.3em] font-semibold uppercase">Explore Below</span>
+            <motion.div
+              animate={{ y: [0, 8, 0] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+            >
+              <ChevronDown className="w-5 h-5 opacity-80" />
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Dynamic Marquee at the bottom of the screen */}
+        <div className="absolute bottom-0 w-full bg-[#D4AF37]/90 text-[#0B0908] py-2 backdrop-blur-sm border-t border-[#D4AF37] z-20">
+          <Marquee autoFill speed={40} className="overflow-hidden font-bold tracking-widest text-xs uppercase">
+            <span className="mx-6 flex items-center gap-3"><Coffee className="w-3 h-3" /> Single Origin</span>
+            <span className="mx-6 flex items-center gap-3"><Star className="w-3 h-3" /> Master Crafted</span>
+            <span className="mx-6 flex items-center gap-3"><Sparkles className="w-3 h-3" /> Liquid Physics</span>
+          </Marquee>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section ref={containerRef} className="relative w-full bg-[#0B0908]" style={{ height: "300vh" }}>
