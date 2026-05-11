@@ -6,7 +6,7 @@ import SmoothScrollProvider from "@/components/ui/SmoothScrollProvider";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "British & Australian Cafe",
+  title: "Aether Cafe - Brewed with Beauty and Bravery ",
   description: "Experience the culmination of two distinct coffee cultures.",
 };
 
