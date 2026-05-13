@@ -65,10 +65,89 @@ const coffees = [
   }
 ];
 
+function CoffeeCardItem({ coffee, i, scrollYProgress, isMobile, selectedCoffee, setSelectedCoffee, animatingId, setAnimatingId, cardOpacity, cardY }: any) {
+  const x = useTransform(scrollYProgress, [0, 0.4], [coffee.initialX, coffee.finalX]);
+  const y = useTransform(scrollYProgress, [0, 0.4], [coffee.initialY, coffee.finalY]);
+  const rotate = useTransform(scrollYProgress, [0, 0.4], [coffee.initialRotate, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.4], [coffee.id !== 1 ? 0.8 : 1, 1]);
+  const zIndex = useTransform(scrollYProgress, (latest: any) => {
+    const progress = Math.min(Math.max(latest / 0.4, 0), 1);
+    return Math.round(coffee.initialZ + progress * (coffee.finalZ - coffee.initialZ));
+  });
+
+  const isSelected = selectedCoffee?.id === coffee.id;
+  const isAnimating = animatingId === coffee.id;
+
+  return (
+    <motion.div
+      style={isMobile ? {} : {
+        x,
+        y,
+        rotate,
+        scale,
+        zIndex
+      }}
+      className={`${isMobile ? 'relative flex flex-col items-center justify-end cursor-pointer group w-full max-w-[340px] h-[580px] mx-auto' : 'absolute flex flex-col items-center justify-end cursor-pointer group w-[340px] h-[580px]'} ${isAnimating ? "!z-[100]" : ""}`}
+      onClick={() => {
+        setAnimatingId(coffee.id);
+        setSelectedCoffee(coffee);
+      }}
+    >
+      {/* The Card Background that fades in */}
+      <motion.div
+        style={isMobile ? { opacity: isSelected ? 0 : 1 } : { opacity: isSelected ? 0 : cardOpacity, y: cardY }}
+        initial={isMobile ? { opacity: 0, y: 50 } : false}
+        whileInView={isMobile ? { opacity: isSelected ? 0 : 1, y: 0 } : undefined}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="absolute bottom-0 w-[340px] h-[460px] bg-[#120F0D] border border-white/5 rounded-[2rem] -z-10 group-hover:border-[#D4AF37]/50 group-hover:shadow-[0_0_40px_rgba(212,175,55,0.1)] transition-all duration-500 flex flex-col justify-end items-center pb-10 px-6 overflow-hidden"
+      >
+        {/* Subtle highlight inside the card on hover */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+        <h3 className="text-2xl font-bold text-white mb-2 text-center relative z-10">{coffee.name}</h3>
+        <p className="text-sm text-white/50 mb-6 text-center relative z-10">{coffee.shortDesc}</p>
+        <div className="flex items-center justify-center gap-2 text-[#D4AF37] font-semibold bg-white/5 py-3 px-6 rounded-full w-max relative z-10 group-hover:bg-[#D4AF37] group-hover:text-[#0B0908] transition-colors">
+          <span>{isSelected ? "Brewing..." : "View Details"}</span>
+          <Plus className="w-4 h-4" />
+        </div>
+      </motion.div>
+
+      {/* The Coffee Image with layoutId for shared element transition */}
+      <motion.div className="relative w-[300px] h-[400px] z-20 group-hover:scale-110 group-hover:-translate-y-6 transition-all duration-700 ease-out mb-[180px]">
+        {/* Continuous floating animation wrapper (doesn't interfere with layoutId) */}
+        <motion.div
+          animate={{ y: [0, -12, 0] }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: i * 0.3 }}
+          className="w-full h-full"
+        >
+          <motion.div layoutId={`coffee-image-${coffee.id}`} className="relative w-full h-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]">
+            <Image
+              src={coffee.image}
+              alt={coffee.name}
+              fill
+              className="object-contain"
+              priority
+            />
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export function CoffeeScrollListing() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedCoffee, setSelectedCoffee] = useState<typeof coffees[0] | null>(null);
   const [animatingId, setAnimatingId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // UX States
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -83,6 +162,7 @@ export function CoffeeScrollListing() {
   // Transform values for cards
   const cardOpacity = useTransform(scrollYProgress, [0.2, 0.4], [0, 1]);
   const cardY = useTransform(scrollYProgress, [0.2, 0.4], [50, 0]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
   // Reset UX states when a new coffee is selected
   useEffect(() => {
@@ -112,86 +192,46 @@ export function CoffeeScrollListing() {
     : "0.00";
 
   return (
-    <div ref={containerRef} className="relative h-[300vh] bg-[#050403] w-full">
-      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+    <div ref={containerRef} className={`relative bg-[#050403] w-full ${isMobile ? 'py-32 h-auto' : 'h-[300vh]'}`}>
+      <div className={isMobile ? 'relative flex flex-col items-center' : 'sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden'}>
         {/* NEW SECTION TITLE */}
-        <motion.div
-          style={{ opacity: useTransform(scrollYProgress, [0, 0.2], [1, 0]) }}
-          className="absolute top-20 left-1/2 -translate-x-1/2 text-center z-0 pointer-events-none"
-        >
-          <span className="text-[#D4AF37] tracking-[0.2em] text-sm font-semibold uppercase block mb-4 drop-shadow-md">Aether Signature</span>
-          <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter drop-shadow-lg">The Collection</h2>
-        </motion.div>
+        {isMobile ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative mb-16 px-6 text-center z-0 pointer-events-none"
+          >
+            <span className="text-[#D4AF37] tracking-[0.2em] text-sm font-semibold uppercase block mb-4 drop-shadow-md">Aether Signature</span>
+            <h2 className="text-4xl font-bold text-white tracking-tighter drop-shadow-lg">The Collection</h2>
+          </motion.div>
+        ) : (
+          <motion.div
+            style={{ opacity: titleOpacity }}
+            className="absolute top-20 left-1/2 -translate-x-1/2 text-center z-0 pointer-events-none"
+          >
+            <span className="text-[#D4AF37] tracking-[0.2em] text-sm font-semibold uppercase block mb-4 drop-shadow-md">Aether Signature</span>
+            <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tighter drop-shadow-lg">The Collection</h2>
+          </motion.div>
+        )}
 
-        <div className="relative w-full max-w-7xl h-[700px] flex items-center justify-center mt-20 z-10">
-          {coffees.map((coffee, i) => {
-            const x = useTransform(scrollYProgress, [0, 0.4], [coffee.initialX, coffee.finalX]);
-            const y = useTransform(scrollYProgress, [0, 0.4], [coffee.initialY, coffee.finalY]);
-            const rotate = useTransform(scrollYProgress, [0, 0.4], [coffee.initialRotate, 0]);
-            const scale = useTransform(scrollYProgress, [0, 0.4], [coffee.id !== 1 ? 0.8 : 1, 1]);
-            const zIndex = useTransform(scrollYProgress, (latest) => {
-              const progress = Math.min(Math.max(latest / 0.4, 0), 1);
-              return Math.round(coffee.initialZ + progress * (coffee.finalZ - coffee.initialZ));
-            });
-
-            // Use animatingId to keep zIndex high even during the closing animation
-            const isSelected = selectedCoffee?.id === coffee.id;
-            const isAnimating = animatingId === coffee.id;
-
-            return (
-              <motion.div
-                key={coffee.id}
-                style={{
-                  x,
-                  y,
-                  rotate,
-                  scale,
-                  zIndex
-                }}
-                className={`absolute flex flex-col items-center justify-end cursor-pointer group w-[340px] h-[580px] ${isAnimating ? "!z-[100]" : ""}`}
-                onClick={() => {
-                  setAnimatingId(coffee.id);
-                  setSelectedCoffee(coffee);
-                }}
-              >
-                {/* The Card Background that fades in */}
-                <motion.div
-                  style={{ opacity: isSelected ? 0 : cardOpacity, y: cardY }}
-                  className="absolute bottom-0 w-[340px] h-[460px] bg-[#120F0D] border border-white/5 rounded-[2rem] -z-10 group-hover:border-[#D4AF37]/50 group-hover:shadow-[0_0_40px_rgba(212,175,55,0.1)] transition-all duration-500 flex flex-col justify-end items-center pb-10 px-6 overflow-hidden"
-                >
-                  {/* Subtle highlight inside the card on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#D4AF37]/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <h3 className="text-2xl font-bold text-white mb-2 text-center relative z-10">{coffee.name}</h3>
-                  <p className="text-sm text-white/50 mb-6 text-center relative z-10">{coffee.shortDesc}</p>
-                  <div className="flex items-center justify-center gap-2 text-[#D4AF37] font-semibold bg-white/5 py-3 px-6 rounded-full w-max relative z-10 group-hover:bg-[#D4AF37] group-hover:text-[#0B0908] transition-colors">
-                    <span>{isSelected ? "Brewing..." : "View Details"}</span>
-                    <Plus className="w-4 h-4" />
-                  </div>
-                </motion.div>
-
-                {/* The Coffee Image with layoutId for shared element transition */}
-                <motion.div className="relative w-[300px] h-[400px] z-20 group-hover:scale-110 group-hover:-translate-y-6 transition-all duration-700 ease-out mb-[180px]">
-                  {/* Continuous floating animation wrapper (doesn't interfere with layoutId) */}
-                  <motion.div
-                    animate={{ y: [0, -12, 0] }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: i * 0.3 }}
-                    className="w-full h-full"
-                  >
-                    <motion.div layoutId={`coffee-image-${coffee.id}`} className="relative w-full h-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)]">
-                      <Image
-                        src={coffee.image}
-                        alt={coffee.name}
-                        fill
-                        className="object-contain"
-                        priority
-                      />
-                    </motion.div>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-            );
-          })}
+        <div className={isMobile ? 'flex flex-col gap-32 w-full px-6' : 'relative w-full max-w-7xl h-[700px] flex items-center justify-center mt-20 z-10'}>
+          {coffees.map((coffee, i) => (
+            <CoffeeCardItem
+              key={coffee.id}
+              coffee={coffee}
+              i={i}
+              scrollYProgress={scrollYProgress}
+              isMobile={isMobile}
+              selectedCoffee={selectedCoffee}
+              setSelectedCoffee={setSelectedCoffee}
+              animatingId={animatingId}
+              setAnimatingId={setAnimatingId}
+              cardOpacity={cardOpacity}
+              cardY={cardY}
+            />
+          ))}
         </div>
       </div>
 
@@ -219,7 +259,7 @@ export function CoffeeScrollListing() {
               </button>
 
               {/* Left: Huge Enqueue Image Container */}
-              <div className="w-full lg:w-1/2 p-8 md:p-16 bg-gradient-to-b from-[#1A1714] to-[#0B0908] flex items-center justify-center relative">
+              <div className="w-full lg:w-1/2 p-8 md:p-16 bg-gradient-to-b from-[#1A1714] to-[#0B0908] flex items-center justify-center relative min-h-[350px] lg:min-h-0 border-b lg:border-b-0 lg:border-r border-white/5 shrink-0">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.2),transparent_70%)]" />
 
                 {/* Background decorative typography (behind the image) */}
@@ -227,13 +267,13 @@ export function CoffeeScrollListing() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[150px] font-black text-white/5 whitespace-nowrap -rotate-90 pointer-events-none select-none z-0"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[80px] lg:text-[150px] font-black text-white/5 whitespace-nowrap lg:-rotate-90 pointer-events-none select-none z-0"
                 >
                   {selectedCoffee.name.split(' ')[0].toUpperCase()}
                 </motion.div>
 
                 {/* The layoutId connected image */}
-                <div className="relative w-[120%] h-[800px] z-50 flex items-center justify-center pointer-events-none">
+                <div className="relative w-full h-[300px] lg:w-[120%] lg:h-[800px] z-50 flex items-center justify-center pointer-events-none">
                   <motion.div
                     layoutId={`coffee-image-${selectedCoffee.id}`}
                     className="relative w-full h-full z-50"
@@ -250,7 +290,7 @@ export function CoffeeScrollListing() {
               </div>
 
               {/* Right: Details & UX Interactive Logic */}
-              <div className="w-full lg:w-1/2 p-8 md:p-16 flex flex-col justify-center overflow-y-auto z-10">
+              <div className="w-full lg:w-1/2 p-6 md:p-16 flex flex-col justify-start lg:justify-center overflow-y-auto z-10 flex-1">
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="text-[#D4AF37] tracking-[0.2em] text-xs font-bold uppercase px-3 py-1 bg-[#D4AF37]/10 rounded-full border border-[#D4AF37]/20">
