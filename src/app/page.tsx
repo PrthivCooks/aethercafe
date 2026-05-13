@@ -322,6 +322,23 @@ export default function Home() {
               },
             ]}
           />
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true }} 
+            transition={{ duration: 0.8 }} 
+            className="mt-16 flex justify-center relative z-20"
+          >
+            <a 
+              href="https://www.google.com/maps/search/?api=1&query=100+Coffee+Lane,+London,+UK,+EC1V+9HX" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-[#120F0D] hover:bg-[#D4AF37] hover:text-[#0B0908] text-white border border-[#D4AF37]/30 px-8 py-4 rounded-full transition-all duration-500 shadow-[0_0_30px_rgba(212,175,55,0.1)] hover:shadow-[0_0_50px_rgba(212,175,55,0.3)] group"
+            >
+              <MapPin className="w-5 h-5 group-hover:-translate-y-1 group-hover:scale-110 transition-transform duration-300" />
+              <span className="font-bold tracking-widest uppercase text-sm">Get To Us</span>
+            </a>
+          </motion.div>
         </div>
       </section>
 
