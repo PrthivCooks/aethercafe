@@ -10,6 +10,7 @@ import { ReviewSummaryCard } from "@/components/ui/card-2";
 import { AnimatedReviewCards } from "@/components/ui/animated-review-card";
 import { AnimatedTeamSection } from "@/components/ui/team-section";
 import ScrollExpandMedia from "@/components/ui/scroll-expansion-hero";
+import { CoffeeScrollListing } from "@/components/ui/coffee-scroll";
 import { InteractiveSelector, SelectorOption } from "@/components/ui/interactive-selector";
 import { WorldMap } from "@/components/ui/map";
 import { ArrowRight, Coffee, Instagram, MapPin, Clock, Croissant, Cake, Leaf, Sandwich, Cookie, Droplet, Sparkles, FlaskConical, Facebook, MessageCircle, Send, Phone, Mail, Menu, X } from "lucide-react";
@@ -221,28 +222,9 @@ export default function Home() {
       </section>
 
 
-      {/* SECTION 2 - CAFE SPECIALS (Stacked Cards) */}
-      <section id="specials" className="relative py-32 bg-[#120F0D]">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <motion.div initial={{ opacity: 0, x: -50 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8 }}>
-            <span className="text-[#D4AF37] tracking-[0.2em] text-sm font-semibold uppercase mb-4 block">Section 02</span>
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8">Café Specials.</h2>
-            <p className="text-lg text-white/60 leading-relaxed font-light mb-10 max-w-md">
-              Our signature drinks are an exploration of flavor. We combine premium roasted beans with
-              culinary techniques to create something entirely new. Hover over the cards to explore our creations.
-            </p>
-            <p className="text-sm italic font-serif text-white/40 mb-8 border-l-2 border-[#D4AF37] pl-4">"Decaf only exists so we can test people's patience."</p>
-
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true, margin: "-100px" }} transition={{ duration: 0.8, delay: 0.2 }} className="h-[600px] w-full flex justify-center items-center">
-            <StackedCardsInteraction
-              cards={cafeSpecials}
-              spreadDistance={60}
-              rotationAngle={8}
-            />
-          </motion.div>
-        </div>
+      {/* SECTION 2 - CAFE SPECIALS (Scroll Listing) */}
+      <section id="specials" className="relative bg-[#120F0D]">
+        <CoffeeScrollListing />
       </section>
 
       {/* NEW SECTION - ARTISAN EDIBLES (Interactive Selector) */}
